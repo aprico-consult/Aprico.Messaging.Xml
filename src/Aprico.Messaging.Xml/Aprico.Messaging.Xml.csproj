@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+   <PropertyGroup>
+      <AssemblyName>Aprico.Messaging.Xml</AssemblyName>
+      <RootNamespace>Aprico</RootNamespace>
+      <Description>Aprico Consultants' Distributed Application Libraries: XML Messaging Helpers.</Description>
+   </PropertyGroup>
+
+   <PropertyGroup>
+      <RepositoryType>git</RepositoryType>
+      <RepositoryUrl>https://github.com/aprico-consult/Aprico.Messaging.Xml</RepositoryUrl>
+      <PublishRepositoryUrl>true</PublishRepositoryUrl>
+      <EmbedUntrackedSources>true</EmbedUntrackedSources>
+   </PropertyGroup>
+
+   <PropertyGroup>
+      <GeneratePackageOnBuild Condition=" '$(GeneratePackageOnBuild)' == '' ">false</GeneratePackageOnBuild>
+      <IsPackable>true</IsPackable>
+      <PackageId>$(AssemblyName)</PackageId>
+      <PackageDescription>$(Description)</PackageDescription>
+      <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+      <PackageTags>aprico distributed application library</PackageTags>
+      <IncludeSymbols>true</IncludeSymbols>
+      <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+   </PropertyGroup>
+
+   <ItemGroup>
+      <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+   </ItemGroup>
+
+</Project>
