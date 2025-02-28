@@ -12,6 +12,7 @@
    </ItemGroup>
 
    <ItemGroup>
+      <PackageReference Include="Aprico.Unit"/>
       <PackageReference Include="AutoFixture"/>
       <PackageReference Include="AutoFixture.Xunit2"/>
       <PackageReference Include="coverlet.collector">

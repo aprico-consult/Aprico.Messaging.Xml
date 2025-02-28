@@ -26,6 +26,13 @@
 
    <ItemGroup>
       <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+      <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+   </ItemGroup>
+
+   <ItemGroup>
+      <PackageReference Include="Be.Stateless.Extensions"/>
+      <PackageReference Include="CommunityToolkit.HighPerformance"/>
+      <PackageReference Include="Microsoft.IO.RecyclableMemoryStream"/>
    </ItemGroup>
 
 </Project>

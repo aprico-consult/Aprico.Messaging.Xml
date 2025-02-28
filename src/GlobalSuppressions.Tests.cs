@@ -18,7 +18,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
 [assembly: SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "Using nested classes is a common organizational approach in xUnit tests.")]
+[assembly: SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
+[assembly: SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes")]
 [assembly: SuppressMessage("Globalization", "CA1305:Specify IFormatProvider")]
 [assembly: SuppressMessage("Maintainability", "CA1515:Consider making public types internal", Justification = "Unit requires test classes to be public")]
