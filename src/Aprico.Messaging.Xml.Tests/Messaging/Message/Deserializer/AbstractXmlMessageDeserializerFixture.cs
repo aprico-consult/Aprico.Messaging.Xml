@@ -16,9 +16,9 @@
 
 #endregion
 
-using System.Buffers;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Xml.Serialization;
+using Aprico.Dummies;
 using Aprico.Moq.Extensions;
 using Aprico.Xml.Extensions;
 using AutoFixture.Xunit2;
@@ -26,24 +26,27 @@ using Moq;
 
 namespace Aprico.Messaging.Message.Deserializer;
 
-public abstract class AbstractXmlMessageDeserializerFixture
+[SuppressMessage("Design", "CA1063:Implement IDisposable Correctly")]
+[SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize")]
+public abstract class AbstractXmlMessageDeserializerFixture : IDisposable
 {
-	#region Nested Type: AddAbstractXmlContract
+	#region Nested Type: AddXmlContract
 
-	public class AddAbstractXmlContract : AbstractXmlMessageDeserializerFixture
+	[Collection(nameof(XmlContractRegistry))]
+	public class AddXmlContract : AbstractXmlMessageDeserializerFixture
 	{
 		[Fact]
 		[SuppressMessage("Usage", "CA2263:Prefer generic overload when type is known", Justification = "Test non generic overload too.")]
 		public void CanChainAddXmlContractCalls()
 		{
-			var sut = new AbstractXmlMessageDeserializerDouble();
+			var sut = new XmlMessageDeserializerDummy();
 
-			var returnedObject = sut.AddXmlContract<DummyOne>()
-				.AddXmlContract(typeof(DummyTwo));
+			var returnedObject = sut.AddXmlContract<FullyQualifiedDummyOne>()
+				.AddXmlContract(typeof(PartiallyQualifiedDummy));
 
 			returnedObject.Should()
 				.BeSameAs(sut)
-				.And.BeOfType<AbstractXmlMessageDeserializerDouble>();
+				.And.BeOfType<XmlMessageDeserializerDummy>();
 		}
 
 		[Fact]
@@ -51,24 +54,36 @@ public abstract class AbstractXmlMessageDeserializerFixture
 		{
 			var sut = new AbstractXmlMessageDeserializerSpy();
 
-			sut.AddXmlContract<DummyOne>();
+			sut.AddXmlContract<FullyQualifiedDummyOne>();
 
-			sut._xmlContractRegistry.AsMock()
-				.Verify(static r => r.RegisterContractType(typeof(DummyOne)), Times.Once);
+			sut.XmlContractRegistry.AsMock()
+				.Verify(static r => r.RegisterContractType(typeof(FullyQualifiedDummyOne)), Times.Once);
 		}
-
-		[XmlRoot("DummyOne", Namespace = "urn:schemas.aprico.be:add-xml-contract")]
-		private sealed class DummyOne;
-
-		[XmlRoot("DummyTwo", Namespace = "urn:schemas.aprico.be:add-xml-contract")]
-		private sealed class DummyTwo;
 	}
 
 	#endregion
 
-	#region Nested Type: GetAbstractXmlContract
+	#region Nested Type: DeserializeBody
 
-	public class GetAbstractXmlContract : AbstractXmlMessageDeserializerFixture
+	[Collection(nameof(XmlContractRegistry))]
+	public class DeserializeBody : AbstractXmlMessageDeserializerFixture
+	{
+		[Fact]
+		public void SucceedsForRegisteredContract()
+		{
+			new XmlMessageDeserializerDummy().AddXmlContract<FullyQualifiedDummyOne>()
+				.DeserializeBody<FullyQualifiedDummyOne>(new FullyQualifiedDummyOne().SerializeAsXmlBinary())
+				.Should()
+				.BeOfType<FullyQualifiedDummyOne>();
+		}
+	}
+
+	#endregion
+
+	#region Nested Type: GetXmlContract
+
+	[Collection(nameof(XmlContractRegistry))]
+	public class GetXmlContract : AbstractXmlMessageDeserializerFixture
 	{
 		[Theory]
 		[AutoData]
@@ -78,51 +93,18 @@ public abstract class AbstractXmlMessageDeserializerFixture
 
 			sut.GetXmlContract(xmlFullyQualifiedName);
 
-			sut._xmlContractRegistry.AsMock()
+			sut.XmlContractRegistry.AsMock()
 				.Verify(r => r.GetRegisteredContract(xmlFullyQualifiedName), Times.Once);
 		}
 	}
 
 	#endregion
 
-	#region Nested Type: XmlMessageBodyDeserializer
+	#region IDisposable Members
 
-	public class XmlMessageBodyDeserializer : AbstractXmlMessageDeserializerFixture
+	public void Dispose()
 	{
-		[Fact]
-		public void SucceedsForRegisteredContract()
-		{
-			var body = new DummyOne().SerializeAsXmlBinary();
-			new AbstractXmlMessageDeserializerDouble().AddXmlContract<DummyOne>()
-				.DeserializeBody<DummyOne>(body)
-				.Should()
-				.BeOfType<DummyOne>();
-		}
-
-		[XmlRoot("DummySix", Namespace = "urn:schemas.aprico.be:deserializer-body")]
-		public class DummyOne;
-	}
-
-	#endregion
-
-	#region Nested Type: AbstractXmlMessageDeserializerDouble
-
-	private sealed class AbstractXmlMessageDeserializerDouble : AbstractXmlMessageDeserializer<AbstractXmlMessageDeserializerDouble>
-	{
-		[SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass", Justification = "For testing purpose.")]
-		public object DeserializeBody<T>(ReadOnlySequence<byte> body)
-		{
-			return base.DeserializeBody(typeof(T), body);
-		}
-	}
-
-	#endregion
-
-	#region Nested Type: AbstractXmlMessageDeserializerSpy
-
-	private sealed class AbstractXmlMessageDeserializerSpy : AbstractXmlMessageDeserializer<AbstractXmlMessageDeserializerSpy>
-	{
-		public AbstractXmlMessageDeserializerSpy() : base(new Mock<XmlContractRegistry>().Object) { }
+		XmlContractRegistry.Registry.Clear();
 	}
 
 	#endregion

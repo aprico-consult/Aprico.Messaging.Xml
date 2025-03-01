@@ -50,7 +50,7 @@ namespace Aprico.Messaging.Message.Deserializer;
 /// This class is thread-safe for concurrent read and write operations due to the use of
 /// <see cref="ConcurrentDictionary{TKey,TValue}"/>.
 /// </threadsafety>
-[SuppressMessage("ReSharper", "ClassWithVirtualMembersNeverInherited.Global", Justification = "For unit testing.")]
+[SuppressMessage("ReSharper", "ClassWithVirtualMembersNeverInherited.Global", Justification = "For mocking purposes.")]
 internal class XmlContractRegistry
 {
 	/// <summary>Determines whether a contract type is registered in the XML contract registry.</summary>
@@ -88,7 +88,7 @@ internal class XmlContractRegistry
 	/// <exception cref="ArgumentException">Thrown if the provided XML fully qualified name is empty or whitespace.</exception>
 	public static bool IsContractRegistered(string xmlFullyQualifiedName)
 	{
-		return _registry.ContainsKey(xmlFullyQualifiedName);
+		return Registry.ContainsKey(xmlFullyQualifiedName);
 	}
 
 	/// <summary>Retrieves the registered contract type for a given XML fully qualified name.</summary>
@@ -105,9 +105,25 @@ internal class XmlContractRegistry
 	/// <exception cref="ArgumentNullException">Thrown if the provided XML fully qualified name is null.</exception>
 	public virtual Type GetRegisteredContract(string xmlFullyQualifiedName)
 	{
-		return _registry.TryGetValue(xmlFullyQualifiedName, out var messageType)
+		return Registry.TryGetValue(xmlFullyQualifiedName, out var messageType)
 			? messageType
 			: throw new InvalidOperationException($"No contract type has been registered for XML message type '{xmlFullyQualifiedName}'.");
+	}
+
+	/// <summary>Registers a specific contract type using a generic type parameter.</summary>
+	/// <typeparam name="T">The contract type to be registered.</typeparam>
+	/// <remarks>Enables direct registration of a contract type by specifying its type through a generic parameter.</remarks>
+	public void RegisterContract<T>()
+	{
+		RegisterContractType(typeof(T));
+	}
+
+	/// <summary>Registers a specific contract type using a Type instance.</summary>
+	/// <param name="type">The contract type to be registered.</param>
+	/// <remarks>Provides an overload for registering a contract type by passing its Type directly.</remarks>
+	public void RegisterContract(Type type)
+	{
+		RegisterContractType(type);
 	}
 
 	/// <summary>Registers a contract assembly by specifying a generic type from the assembly.</summary>
@@ -133,29 +149,14 @@ internal class XmlContractRegistry
 			.ForEach(RegisterContractType);
 	}
 
-	/// <summary>Registers a specific contract type using a generic type parameter.</summary>
-	/// <typeparam name="T">The contract type to be registered.</typeparam>
-	/// <remarks>Enables direct registration of a contract type by specifying its type through a generic parameter.</remarks>
-	public void RegisterContract<T>()
-	{
-		RegisterContractType(typeof(T));
-	}
-
-	/// <summary>Registers a specific contract type using a Type instance.</summary>
-	/// <param name="type">The contract type to be registered.</param>
-	/// <remarks>Provides an overload for registering a contract type by passing its Type directly.</remarks>
-	public void RegisterContract(Type type)
-	{
-		RegisterContractType(type);
-	}
-
 	internal virtual void RegisterContractType(Type type)
 	{
 		var xmlFullyQualifiedName = type.GetXmlFullyQualifiedName();
-		if (_registry.TryAdd(xmlFullyQualifiedName, type)) return;
-		var previouslyRegisteredType = _registry[xmlFullyQualifiedName];
-		throw new InvalidOperationException($"XML message type '{xmlFullyQualifiedName}' has already been registered for contract type '{previouslyRegisteredType.FullName}'.");
+		if (Registry.TryAdd(xmlFullyQualifiedName, type)) return;
+		var previouslyRegisteredType = Registry[xmlFullyQualifiedName];
+		throw new InvalidOperationException(
+			$"The XML message type '{xmlFullyQualifiedName}' has already been registered by the contract type '{previouslyRegisteredType.FullName}' and cannot be registered again by the contract type '{type.FullName}'.");
 	}
 
-	private static readonly ConcurrentDictionary<string, Type> _registry = [];
+	internal static readonly ConcurrentDictionary<string, Type> Registry = [];
 }

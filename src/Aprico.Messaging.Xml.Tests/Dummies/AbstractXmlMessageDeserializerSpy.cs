@@ -16,33 +16,12 @@
 
 #endregion
 
-using System;
-using Aprico.Dummies;
+using Aprico.Messaging.Message.Deserializer;
+using Moq;
 
-namespace Aprico.Extensions;
+namespace Aprico.Dummies;
 
-public abstract class ObjectXmlExtensionsFixture
+internal sealed class AbstractXmlMessageDeserializerSpy : AbstractXmlMessageDeserializer<AbstractXmlMessageDeserializerSpy>
 {
-	#region Nested Type: GetXmlFullyQualifiedName
-
-	public class GetXmlFullyQualifiedName : ObjectXmlExtensionsFixture
-	{
-		[Fact]
-		public void FailsForUnqualified()
-		{
-			Invoking(static () => new UnqualifiedDummy().GetXmlFullyQualifiedName())
-				.Should()
-				.Throw<InvalidOperationException>();
-		}
-
-		[Fact]
-		public void SucceedsForQualified()
-		{
-			new FullyQualifiedDummyOne().GetXmlFullyQualifiedName()
-				.Should()
-				.Be("https://schemas.aprico.be#DummyXml");
-		}
-	}
-
-	#endregion
+	public AbstractXmlMessageDeserializerSpy() : base(new Mock<XmlContractRegistry>().Object) { }
 }

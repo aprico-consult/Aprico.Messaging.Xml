@@ -18,116 +18,110 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Xml.Serialization;
+using Aprico.Dummies;
 using Aprico.Extensions;
 
 namespace Aprico.Messaging.Message.Deserializer;
 
-public abstract class XmlContractRegistryFixture
+[SuppressMessage("Design", "CA1063:Implement IDisposable Correctly")]
+[SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize")]
+public abstract class XmlContractRegistryFixture : IDisposable
 {
 	#region Nested Type: GetRegisteredContract
 
+	[Collection(nameof(XmlContractRegistry))]
 	public class GetRegisteredContract : XmlContractRegistryFixture
 	{
 		[Fact]
 		public void FailsForUnregisteredContractType()
 		{
 			var sut = new XmlContractRegistry();
-			Invoking(() => sut.GetRegisteredContract(typeof(DummyOne).GetXmlFullyQualifiedName()))
+			Invoking(() => sut.GetRegisteredContract(typeof(FullyQualifiedDummyOne).GetXmlFullyQualifiedName()))
 				.Should()
 				.Throw<InvalidOperationException>()
-				.WithMessage("No contract type has been registered for XML message type 'urn:schemas.aprico.be:get-contract-type#DummyOne'.");
+				.WithMessage($"No contract type has been registered for XML message type '{typeof(FullyQualifiedDummyOne).GetXmlFullyQualifiedName()}'.");
 		}
 
 		[Fact]
 		public void SucceedsForRegisteredContractType()
 		{
 			var sut = new XmlContractRegistry();
-			sut.RegisterContract<DummyTwo>();
-			sut.GetRegisteredContract(typeof(DummyTwo).GetXmlFullyQualifiedName())
+			sut.RegisterContract<FullyQualifiedDummyOne>();
+			sut.GetRegisteredContract(typeof(FullyQualifiedDummyOne).GetXmlFullyQualifiedName())
 				.Should()
-				.Be<DummyTwo>();
+				.Be<FullyQualifiedDummyOne>();
 		}
-
-		[XmlRoot("DummyOne", Namespace = "urn:schemas.aprico.be:get-contract-type")]
-		private sealed class DummyOne;
-
-		[XmlRoot("DummyTwo", Namespace = "urn:schemas.aprico.be:get-contract-type")]
-		private sealed class DummyTwo;
 	}
 
 	#endregion
 
 	#region Nested Type: RegisterContract
 
+	[Collection(nameof(XmlContractRegistry))]
 	public class RegisterContract : XmlContractRegistryFixture
 	{
+		[Fact]
+		public void CannotRegisterContractHavingXmlRootQualifiedName()
+		{
+			var sut = new XmlContractRegistry();
+			Invoking(sut.RegisterContract<RootNameQualifiedDummy>)
+				.Should()
+				.Throw<InvalidOperationException>()
+				.WithMessage("xmlRootAttribute.Namespace cannot be null or an empty string.*");
+		}
+
 		[Fact]
 		public void CannotRegisterTwoContractsHavingSameXmlFullyQualifiedName()
 		{
 			var sut = new XmlContractRegistry();
-			sut.RegisterContract<DummyOne>();
-			Invoking(sut.RegisterContract<DummyTwo>)
+			sut.RegisterContract<FullyQualifiedDummyOne>();
+			Invoking(sut.RegisterContract<FullyQualifiedDummyTwo>)
 				.Should()
 				.Throw<InvalidOperationException>()
-				.WithMessage($"XML message type '{typeof(DummyTwo).GetXmlFullyQualifiedName()}' has already been registered for contract type '{typeof(DummyOne).FullName}'.");
+				.WithMessage(
+					$"The XML message type '{typeof(FullyQualifiedDummyOne).GetXmlFullyQualifiedName()}' "
+					+ $"has already been registered by the contract type '{typeof(FullyQualifiedDummyOne).FullName}' "
+					+ $"and cannot be registered again by the contract type '{typeof(FullyQualifiedDummyTwo).FullName}'.");
 		}
 
 		[Fact]
 		public void CanRegisterContractHavingXmlFullyQualifiedName()
 		{
 			var sut = new XmlContractRegistry();
-			sut.RegisterContract<FullyQualified>();
-			XmlContractRegistry.IsContractRegistered("urn:schemas.aprico.be:register-contract#FullyQualified")
+			sut.RegisterContract<FullyQualifiedDummyOne>();
+			XmlContractRegistry.IsContractRegistered(typeof(FullyQualifiedDummyOne).GetXmlFullyQualifiedName())
 				.Should()
 				.BeTrue();
-			XmlContractRegistry.IsContractRegistered<FullyQualified>()
+			XmlContractRegistry.IsContractRegistered<FullyQualifiedDummyOne>()
 				.Should()
 				.BeTrue();
 		}
 
 		[Fact]
 		[SuppressMessage("Usage", "CA2263:Prefer generic overload when type is known", Justification = "Test non generic overload too.")]
-		public void CanRegisterContractHavingXmlNamespaceQualifiedName()
+		public void CanRegisterContractHavingXmlPartiallyQualifiedName()
 		{
 			var sut = new XmlContractRegistry();
-			sut.RegisterContract(typeof(NamespaceQualified));
-			XmlContractRegistry.IsContractRegistered("urn:schemas.aprico.be:register-contract#NamespaceQualified")
+			sut.RegisterContract(typeof(PartiallyQualifiedDummy));
+			XmlContractRegistry.IsContractRegistered(typeof(PartiallyQualifiedDummy).GetXmlFullyQualifiedName())
 				.Should()
 				.BeTrue();
-			XmlContractRegistry.IsContractRegistered("urn:schemas.aprico.be:register-contract#")
+			XmlContractRegistry.IsContractRegistered(typeof(PartiallyQualifiedDummy))
+				.Should()
+				.BeTrue();
+			XmlContractRegistry.IsContractRegistered($"{typeof(PartiallyQualifiedDummy).GetRequiredXmlRootAttribute().Namespace}#")
 				.Should()
 				.BeFalse();
-			XmlContractRegistry.IsContractRegistered(typeof(NamespaceQualified))
-				.Should()
-				.BeTrue();
 		}
+	}
 
-		// TODO should prevent this
-		[Fact]
-		public void CanRegisterContractHavingXmlRootQualifiedName()
-		{
-			var sut = new XmlContractRegistry();
-			sut.RegisterContract<RootQualified>();
-			XmlContractRegistry.IsContractRegistered("#RootQualified")
-				.Should()
-				.BeTrue();
-		}
+	#endregion
 
-		[XmlRoot("DummyXml", Namespace = "urn:schemas.aprico.be:register-contract")]
-		private sealed class DummyOne;
+	#region IDisposable Members
 
-		[XmlRoot("DummyXml", Namespace = "urn:schemas.aprico.be:register-contract")]
-		private sealed class DummyTwo;
-
-		[XmlRoot("FullyQualified", Namespace = "urn:schemas.aprico.be:register-contract")]
-		private sealed class FullyQualified;
-
-		[XmlRoot(Namespace = "urn:schemas.aprico.be:register-contract")]
-		private sealed class NamespaceQualified;
-
-		[XmlRoot("RootQualified")]
-		private sealed class RootQualified;
+	public void Dispose()
+	{
+		XmlContractRegistry.Registry.Clear();
 	}
 
 	#endregion

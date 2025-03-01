@@ -16,33 +16,6 @@
 
 #endregion
 
-using System;
-using Aprico.Dummies;
+namespace Aprico.Dummies;
 
-namespace Aprico.Extensions;
-
-public abstract class ObjectXmlExtensionsFixture
-{
-	#region Nested Type: GetXmlFullyQualifiedName
-
-	public class GetXmlFullyQualifiedName : ObjectXmlExtensionsFixture
-	{
-		[Fact]
-		public void FailsForUnqualified()
-		{
-			Invoking(static () => new UnqualifiedDummy().GetXmlFullyQualifiedName())
-				.Should()
-				.Throw<InvalidOperationException>();
-		}
-
-		[Fact]
-		public void SucceedsForQualified()
-		{
-			new FullyQualifiedDummyOne().GetXmlFullyQualifiedName()
-				.Should()
-				.Be("https://schemas.aprico.be#DummyXml");
-		}
-	}
-
-	#endregion
-}
+internal sealed class UnqualifiedDummy;

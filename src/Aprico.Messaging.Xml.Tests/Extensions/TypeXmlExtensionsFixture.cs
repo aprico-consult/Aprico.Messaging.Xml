@@ -19,6 +19,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
+using Aprico.Dummies;
 
 namespace Aprico.Extensions;
 
@@ -30,20 +31,21 @@ public abstract class TypeXmlExtensionsFixture
 	public class GetRequiredXmlRootAttribute : TypeXmlExtensionsFixture
 	{
 		[Fact]
-		public void FailsWhenNotDecoratedWithXmlRootAttribute()
+		public void FailsForUnqualified()
 		{
-			Invoking(static () => typeof(Dummy).GetRequiredXmlRootAttribute())
+			Invoking(static () => typeof(UnqualifiedDummy).GetRequiredXmlRootAttribute())
 				.Should()
 				.Throw<InvalidOperationException>()
-				.WithMessage("type.GetXmlRootAttribute() cannot be null." + Environment.NewLine + $"The type '{typeof(Dummy).FullName}' must be decorated with an {nameof(XmlRootAttribute)}.");
+				.WithMessage(
+					"type.GetXmlRootAttribute() cannot be null." + Environment.NewLine + $"The type '{typeof(UnqualifiedDummy).FullName}' must be decorated with an {nameof(XmlRootAttribute)}.");
 		}
 
 		[Fact]
-		public void SucceedsWhenDecoratedWithXmlRootAttribute()
+		public void SucceedsForQualified()
 		{
-			typeof(ElementNameQualifiedDummyXml).GetRequiredXmlRootAttribute()
+			typeof(RootNameQualifiedDummy).GetRequiredXmlRootAttribute()
 				.Should()
-				.Be(typeof(ElementNameQualifiedDummyXml).GetXmlRootAttribute());
+				.Be(typeof(RootNameQualifiedDummy).GetXmlRootAttribute());
 		}
 	}
 
@@ -54,26 +56,26 @@ public abstract class TypeXmlExtensionsFixture
 	public class GetXmlFullyQualifiedName : TypeXmlExtensionsFixture
 	{
 		[Fact]
-		public void FailsWhenForNotXmlNamespaceXmlRootQualified()
+		public void FailsForRootNameQualified()
 		{
-			Invoking(static () => typeof(ElementNameQualifiedDummyXml).GetXmlFullyQualifiedName())
+			Invoking(static () => typeof(RootNameQualifiedDummy).GetXmlFullyQualifiedName())
 				.Should()
 				.Throw<InvalidOperationException>()
 				.WithMessage(
 					"xmlRootAttribute.Namespace cannot be null or an empty string." + Environment.NewLine
-					+ $"The {nameof(XmlRootAttribute)} decorating the type '{typeof(ElementNameQualifiedDummyXml).FullName}' must specify an XML namespace.");
+					+ $"The {nameof(XmlRootAttribute)} decorating the type '{typeof(RootNameQualifiedDummy).FullName}' must specify an XML namespace.");
 		}
 
 		[Fact]
-		public void ReturnsXmlFullyQualified()
+		public void SucceedsForFullyQualified()
 		{
-			var qualifiedName = typeof(FullyQualifiedDummy).GetXmlFullyQualifiedName();
+			var qualifiedName = typeof(FullyQualifiedDummyOne).GetXmlFullyQualifiedName();
 			qualifiedName.Should()
 				.Be("https://schemas.aprico.be#DummyXml");
 		}
 
 		[Fact]
-		public void ReturnsXmlFullyQualifiedForPartiallyQualifiedName()
+		public void SucceedsForPartiallyQualified()
 		{
 			var qualifiedName = typeof(PartiallyQualifiedDummy).GetXmlFullyQualifiedName();
 			qualifiedName.Should()
@@ -89,17 +91,17 @@ public abstract class TypeXmlExtensionsFixture
 	public class GetXmlRootAttribute : TypeXmlExtensionsFixture
 	{
 		[Fact]
-		public void SucceedsWhenNoXmlRootAttribute()
+		public void SucceedsForQualified()
 		{
-			typeof(Dummy).GetXmlRootAttribute()
+			typeof(UnqualifiedDummy).GetXmlRootAttribute()
 				.Should()
 				.BeNull();
 		}
 
 		[Fact]
-		public void SucceedsWhenXmlRootAttribute()
+		public void SucceedsForUnqualified()
 		{
-			typeof(ElementNameQualifiedDummyXml).GetXmlRootAttribute()
+			typeof(RootNameQualifiedDummy).GetXmlRootAttribute()
 				.Should()
 				.NotBeNull()
 				.And.BeOfType<XmlRootAttribute>();
@@ -113,52 +115,37 @@ public abstract class TypeXmlExtensionsFixture
 	public class HasXmlPartiallyQualifiedName : TypeXmlExtensionsFixture
 	{
 		[Fact]
-		public void ReturnsFalseWhenFullyQualified()
+		public void ReturnsFalseForFullyQualified()
 		{
-			typeof(FullyQualifiedDummy).HasXmlPartiallyQualifiedName()
+			typeof(FullyQualifiedDummyOne).HasXmlPartiallyQualifiedName()
 				.Should()
 				.BeFalse();
 		}
 
 		[Fact]
-		public void ReturnsFalseWhenNoNamespace()
+		public void ReturnsFalseForRootNameQualified()
 		{
-			typeof(ElementNameQualifiedDummyXml).HasXmlPartiallyQualifiedName()
+			typeof(RootNameQualifiedDummy).HasXmlPartiallyQualifiedName()
 				.Should()
 				.BeFalse();
 		}
 
 		[Fact]
-		public void ReturnsFalseWhenNoXmlRootAttribute()
+		public void ReturnsFalseForUnqualified()
 		{
-			typeof(Dummy).HasXmlPartiallyQualifiedName()
+			typeof(UnqualifiedDummy).HasXmlPartiallyQualifiedName()
 				.Should()
 				.BeFalse();
 		}
 
 		[Fact]
-		public void ReturnsTrueWhenNamespaceAndNoElementName()
+		public void ReturnsTrueForPartiallyQualified()
 		{
 			typeof(PartiallyQualifiedDummy).HasXmlPartiallyQualifiedName()
 				.Should()
 				.BeTrue();
 		}
 	}
-
-	#endregion
-
-	#region Test Dummies
-
-	private sealed class Dummy;
-
-	[XmlRoot("DummyXml")]
-	private sealed class ElementNameQualifiedDummyXml;
-
-	[XmlRoot("DummyXml", Namespace = "https://schemas.aprico.be")]
-	private sealed class FullyQualifiedDummy;
-
-	[XmlRoot(Namespace = "https://schemas.aprico.be")]
-	private sealed class PartiallyQualifiedDummy;
 
 	#endregion
 }

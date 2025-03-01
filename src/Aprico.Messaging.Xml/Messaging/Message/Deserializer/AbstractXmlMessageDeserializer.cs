@@ -42,7 +42,27 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 	// for unit test purposes only
 	private protected AbstractXmlMessageDeserializer(XmlContractRegistry xmlContractRegistry)
 	{
-		_xmlContractRegistry = xmlContractRegistry;
+		XmlContractRegistry = xmlContractRegistry;
+	}
+
+	internal XmlContractRegistry XmlContractRegistry { get; } = new();
+
+	/// <summary>Registers a specific XML contract type with the deserialization contract registry.</summary>
+	/// <typeparam name="T">The XML contract type to register.</typeparam>
+	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
+	public TXmlDeserializer AddXmlContract<T>()
+	{
+		XmlContractRegistry.RegisterContract<T>();
+		return (TXmlDeserializer) this;
+	}
+
+	/// <summary>Registers a specific XML contract type with the deserialization contract registry.</summary>
+	/// <param name="type">The type of the XML contract to register.</param>
+	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
+	public TXmlDeserializer AddXmlContract(Type type)
+	{
+		XmlContractRegistry.RegisterContract(type);
+		return (TXmlDeserializer) this;
 	}
 
 	/// <summary>Registers an XML contract assembly to the deserialization contract registry.</summary>
@@ -50,7 +70,7 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
 	public TXmlDeserializer AddXmlContractAssembly<T>()
 	{
-		_xmlContractRegistry.RegisterContractAssembly<T>();
+		XmlContractRegistry.RegisterContractAssembly<T>();
 		return (TXmlDeserializer) this;
 	}
 
@@ -61,25 +81,7 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 	public TXmlDeserializer AddXmlContractAssembly(Assembly assembly)
 	{
 		ArgumentNullException.ThrowIfNull(assembly);
-		_xmlContractRegistry.RegisterContractAssembly(assembly);
-		return (TXmlDeserializer) this;
-	}
-
-	/// <summary>Registers a specific XML contract type with the deserialization contract registry.</summary>
-	/// <typeparam name="T">The XML contract type to register.</typeparam>
-	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
-	public TXmlDeserializer AddXmlContract<T>()
-	{
-		_xmlContractRegistry.RegisterContract<T>();
-		return (TXmlDeserializer) this;
-	}
-
-	/// <summary>Registers a specific XML contract type with the deserialization contract registry.</summary>
-	/// <param name="type">The type of the XML contract to register.</param>
-	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
-	public TXmlDeserializer AddXmlContract(Type type)
-	{
-		_xmlContractRegistry.RegisterContract(type);
+		XmlContractRegistry.RegisterContractAssembly(assembly);
 		return (TXmlDeserializer) this;
 	}
 
@@ -92,7 +94,7 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 	{
 		var xmlSerializer = new XmlSerializer(type);
 		using var xmlReader = XmlReader.Create(body.AsStream());
-		return xmlSerializer.Deserialize(xmlReader) ?? throw new InvalidOperationException($"Failed to deserialize message of type {type}.");
+		return xmlSerializer.Deserialize(xmlReader) ?? throw new InvalidOperationException($"Deserialization failed for type {type}.");
 	}
 
 	/// <summary>Retrieves the registered XML contract type based on its fully qualified name.</summary>
@@ -105,8 +107,6 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 	[SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global", Justification = "Fluent API.")]
 	protected internal Type GetXmlContract(string fullyQualifiedName)
 	{
-		return _xmlContractRegistry.GetRegisteredContract(fullyQualifiedName);
+		return XmlContractRegistry.GetRegisteredContract(fullyQualifiedName);
 	}
-
-	internal readonly XmlContractRegistry _xmlContractRegistry = new();
 }
