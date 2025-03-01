@@ -21,11 +21,11 @@ using System.Xml.Serialization;
 
 namespace Aprico.Xml.Extensions;
 
-public abstract class XmlSerializerExtensionsFixture
+public abstract class ObjectXmlSerializationExtensionsFixture
 {
 	#region Nested Type: SerializeAsString
 
-	public class SerializeAsString : XmlSerializerExtensionsFixture
+	public class SerializeAsString : ObjectXmlSerializationExtensionsFixture
 	{
 		[Fact]
 		public void FailsWhenNoXmlRootAttribute()

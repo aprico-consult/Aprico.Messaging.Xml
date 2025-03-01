@@ -1,13 +1,13 @@
 #region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ namespace Aprico.Xml.Extensions;
 /// functionality for XML-related operations.
 /// </remarks>
 [SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
-public static class XmlSerializerExtensions
+public static class ObjectXmlSerializationExtensions
 {
 	/// <summary>Serializes an object of type <typeparamref name="T"/> to XML as a read-only byte sequence.</summary>
 	/// <typeparam name="T">The type of the object to serialize. Must be a non-null type.</typeparam>
@@ -52,7 +52,7 @@ public static class XmlSerializerExtensions
 	public static ReadOnlySequence<byte> SerializeAsXmlBinary<T>([DisallowNull] this T body)
 		where T : notnull
 	{
-		using var stream = _streamManager.GetStream($"{nameof(XmlSerializerExtensions)}.{nameof(SerializeAsXmlBinary)}");
+		using var stream = _streamManager.GetStream($"{nameof(ObjectXmlSerializationExtensions)}.{nameof(SerializeAsXmlBinary)}");
 		body.WriteXml(settings => XmlWriter.Create(stream, settings));
 		return stream.GetReadOnlySequence();
 	}
@@ -79,7 +79,7 @@ public static class XmlSerializerExtensions
 		ArgumentNullException.ThrowIfNull(xmlWriterFactory);
 
 		// fail fast if type does not have an XmlRootAttribute
-		var rootAttribute = typeof(T).GetXmlRootAttribute();
+		var rootAttribute = typeof(T).GetRequiredXmlRootAttribute();
 
 		var xmlns = new XmlSerializerNamespaces();
 		// omitting xsi and xsd namespaces when serializing an object in .NET, see https://stackoverflow.com/a/935749/1789441
@@ -94,14 +94,14 @@ public static class XmlSerializerExtensions
 		writer.Flush();
 	}
 
-	// https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream?tab=readme-ov-file#usage-guidelines
+	// https://github.com/microsoft/Microsoft.IO.RecyclableMemoryStream#usage-guidelines
 	private static readonly RecyclableMemoryStreamManager _streamManager = new(
 		new RecyclableMemoryStreamManager.Options {
-			BlockSize = 4096, // Standard page size, good for most scenarios
-			LargeBufferMultiple = 1024 * 1024, // 1MB large buffers
-			MaximumBufferSize = 16 * 1024 * 1024, // 16MB max buffer size
-			MaximumLargePoolFreeBytes = 64 * 1024 * 1024, // 64MB max large pool
-			MaximumSmallPoolFreeBytes = 1024 * 1024 // 1MB max small pool
+			BlockSize = 4096, // standard page size, good for most scenarios
+			LargeBufferMultiple = 1024 * 1024,
+			MaximumBufferSize = 16 * 1024 * 1024,
+			MaximumLargePoolFreeBytes = 64 * 1024 * 1024,
+			MaximumSmallPoolFreeBytes = 1024 * 1024
 		});
 
 	private static readonly XmlWriterSettings _xmlWriterSettings = new() {
