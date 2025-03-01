@@ -17,58 +17,92 @@
 #endregion
 
 using System;
-using System.Xml.Serialization;
+using System.Buffers;
+using Aprico.Dummies;
 
 namespace Aprico.Xml.Extensions;
 
 public abstract class ObjectXmlSerializationExtensionsFixture
 {
-	#region Nested Type: SerializeAsString
+	#region Nested Type: SerializeAsXmlBinary
 
-	public class SerializeAsString : ObjectXmlSerializationExtensionsFixture
+	public class SerializeAsXmlBinary : ObjectXmlSerializationExtensionsFixture
 	{
 		[Fact]
-		public void FailsWhenNoXmlRootAttribute()
+		public void FailsForRootNameQualified()
 		{
-			Invoking(static () => new Dummy().SerializeAsXmlString())
+			Invoking(static () => new RootNameQualifiedDummy().SerializeAsXmlBinary())
+				.Should()
+				.Throw<InvalidOperationException>()
+				.WithMessage("xmlRootAttribute.Namespace cannot be null or an empty string.*");
+		}
+
+		[Fact]
+		public void FailsForUnqualified()
+		{
+			Invoking(static () => new UnqualifiedDummy().SerializeAsXmlBinary())
 				.Should()
 				.Throw<InvalidOperationException>();
 		}
 
 		[Fact]
-		public void SucceedsForXmlFullyQualified()
+		public void SucceedsForFullyQualified()
 		{
-			var xmlString = new XmlFullyQualified().SerializeAsXmlString();
-			xmlString.Should()
-				.Be("<q1:DummyXml xmlns:q1=\"https://schemas.aprico.be\" />");
+			var xmlBinary = new FullyQualifiedDummyOne().SerializeAsXmlBinary();
+			xmlBinary.ToArray()
+				.Should()
+				.BeEquivalentTo("<q:DummyXml xmlns:q=\"https://schemas.aprico.be\" />"u8.ToArray());
 		}
 
 		[Fact]
-		public void SucceedsForXmlNamespaceQualified()
+		public void SucceedsForPartiallyQualified()
 		{
-			var xmlString = new XmlNamespaceQualified().SerializeAsXmlString();
-			xmlString.Should()
-				.Be("<q1:XmlNamespaceQualified xmlns:q1=\"https://schemas.aprico.be\" />");
+			var xmlBinary = new PartiallyQualifiedDummy().SerializeAsXmlBinary();
+			xmlBinary.ToArray()
+				.Should()
+				.BeEquivalentTo("<q:PartiallyQualifiedDummy xmlns:q=\"https://schemas.aprico.be\" />"u8.ToArray());
+		}
+	}
+
+	#endregion
+
+	#region Nested Type: SerializeAsXmlString
+
+	public class SerializeAsXmlString : ObjectXmlSerializationExtensionsFixture
+	{
+		[Fact]
+		public void FailsForRootNameQualified()
+		{
+			Invoking(static () => new RootNameQualifiedDummy().SerializeAsXmlString())
+				.Should()
+				.Throw<InvalidOperationException>()
+				.WithMessage("xmlRootAttribute.Namespace cannot be null or an empty string.*");
 		}
 
 		[Fact]
-		public void SucceedsForXmlRootQualified()
+		public void FailsForUnqualified()
 		{
-			var xmlString = new XmlRootQualified().SerializeAsXmlString();
-			xmlString.Should()
-				.Be("<DummyXml />");
+			Invoking(static () => new UnqualifiedDummy().SerializeAsXmlString())
+				.Should()
+				.Throw<InvalidOperationException>()
+				.WithMessage("type.GetXmlRootAttribute() cannot be null.*");
 		}
 
-		private sealed class Dummy;
+		[Fact]
+		public void SucceedsForFullyQualified()
+		{
+			var xmlString = new FullyQualifiedDummyOne().SerializeAsXmlString();
+			xmlString.Should()
+				.Be("<q:DummyXml xmlns:q=\"https://schemas.aprico.be\" />");
+		}
 
-		[XmlRoot("DummyXml", Namespace = "https://schemas.aprico.be")]
-		public class XmlFullyQualified;
-
-		[XmlRoot(Namespace = "https://schemas.aprico.be")]
-		public class XmlNamespaceQualified;
-
-		[XmlRoot("DummyXml")]
-		public class XmlRootQualified;
+		[Fact]
+		public void SucceedsForPartiallyQualified()
+		{
+			var xmlString = new PartiallyQualifiedDummy().SerializeAsXmlString();
+			xmlString.Should()
+				.Be("<q:PartiallyQualifiedDummy xmlns:q=\"https://schemas.aprico.be\" />");
+		}
 	}
 
 	#endregion

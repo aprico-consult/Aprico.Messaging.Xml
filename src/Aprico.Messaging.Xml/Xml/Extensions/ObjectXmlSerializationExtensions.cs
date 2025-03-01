@@ -75,17 +75,12 @@ public static class ObjectXmlSerializationExtensions
 	private static void WriteXml<T>([DisallowNull] this T body, Func<XmlWriterSettings, XmlWriter> xmlWriterFactory)
 		where T : notnull
 	{
-		ArgumentNullException.ThrowIfNull(body);
-		ArgumentNullException.ThrowIfNull(xmlWriterFactory);
-
-		// fail fast if type does not have an XmlRootAttribute
-		var rootAttribute = typeof(T).GetRequiredXmlRootAttribute();
+		var xmlRootAttribute = typeof(T).GetRequiredXmlRootAttribute();
 
 		var xmlns = new XmlSerializerNamespaces();
 		// omitting xsi and xsd namespaces when serializing an object in .NET, see https://stackoverflow.com/a/935749/1789441
 		xmlns.Add(string.Empty, string.Empty);
-		// TODO !! should not support this, must always have a non empty namespace !! ?? or maybe OK here but not when registering contracts ??
-		rootAttribute.Namespace.IfNotNullOrEmpty(ns => xmlns.Add("q1", ns));
+		xmlns.Add("q", xmlRootAttribute.Namespace.UnlessIsNullOrEmpty($"The {nameof(XmlRootAttribute)} decorating the type '{typeof(T).FullName}' must specify an XML namespace."));
 
 		using var writer = xmlWriterFactory(_xmlWriterSettings);
 		// https://docs.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlserializer?view=netframework-4.8#dynamically-generated-assemblies
@@ -105,7 +100,7 @@ public static class ObjectXmlSerializationExtensions
 		});
 
 	private static readonly XmlWriterSettings _xmlWriterSettings = new() {
-		Encoding = Encoding.UTF8,
+		Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), // no BOM
 		Indent = false,
 		OmitXmlDeclaration = true,
 		NamespaceHandling = NamespaceHandling.OmitDuplicates
