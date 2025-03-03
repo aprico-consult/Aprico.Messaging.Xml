@@ -16,14 +16,14 @@
 
 #endregion
 
-using System.Buffers;
+using System;
 using Aprico.Messaging.Message.Deserializer;
 
 namespace Aprico.Dummies;
 
 internal sealed class XmlMessageDeserializerDummy : AbstractXmlMessageDeserializer<XmlMessageDeserializerDummy>
 {
-	public object DeserializeBody<T>(ReadOnlySequence<byte> body)
+	public object DeserializeBody<T>(ReadOnlyMemory<byte> body)
 	{
 		return base.DeserializeBody(typeof(T), body);
 	}

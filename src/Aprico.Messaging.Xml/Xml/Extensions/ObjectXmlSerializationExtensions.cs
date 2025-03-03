@@ -1,13 +1,13 @@
 #region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,12 +49,13 @@ public static class ObjectXmlSerializationExtensions
 	/// <exception cref="ArgumentNullException">Thrown if the input object is null.</exception>
 	/// <exception cref="InvalidOperationException">Thrown if XML serialization fails.</exception>
 	[SuppressMessage("ReSharper", "AccessToDisposedClosure")]
-	public static ReadOnlySequence<byte> SerializeAsXmlBinary<T>([DisallowNull] this T body)
+	public static ReadOnlyMemory<byte> SerializeAsXmlBinary<T>([DisallowNull] this T body)
 		where T : notnull
 	{
 		using var stream = _streamManager.GetStream($"{nameof(ObjectXmlSerializationExtensions)}.{nameof(SerializeAsXmlBinary)}");
 		body.WriteXml(settings => XmlWriter.Create(stream, settings));
-		return stream.GetReadOnlySequence();
+		// @formatter:wrap_chained_method_calls chop_if_long
+		return stream.GetBuffer().AsMemory(start: 0, (int) stream.Length);
 	}
 
 	/// <summary>Serializes an object of type <typeparamref name="T"/> to an XML string representation.</summary>

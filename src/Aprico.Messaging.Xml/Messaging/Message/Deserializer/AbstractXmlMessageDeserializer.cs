@@ -19,6 +19,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
@@ -51,6 +52,7 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 	/// <typeparam name="T">The XML contract type to register.</typeparam>
 	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
 	public TXmlDeserializer AddXmlContract<T>()
+		where T : notnull
 	{
 		XmlContractRegistry.RegisterContract<T>();
 		return (TXmlDeserializer) this;
@@ -65,16 +67,17 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return (TXmlDeserializer) this;
 	}
 
-	/// <summary>Registers an XML contract assembly to the deserialization contract registry.</summary>
+	/// <summary>Registers all contract types within the specified assembly that have an <see cref="XmlRootAttribute"/>.</summary>
 	/// <typeparam name="T">The assembly containing XML contract types to register.</typeparam>
 	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
 	public TXmlDeserializer AddXmlContractAssembly<T>()
+		where T : notnull
 	{
 		XmlContractRegistry.RegisterContractAssembly<T>();
 		return (TXmlDeserializer) this;
 	}
 
-	/// <summary>Registers an assembly containing XML contract types with the deserialization contract registry.</summary>
+	/// <summary>Registers all contract types within the specified assembly that have an <see cref="XmlRootAttribute"/>.</summary>
 	/// <param name="assembly">The assembly to register for XML contract deserialization.</param>
 	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if the provided assembly is null.</exception>
@@ -87,13 +90,36 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 
 	/// <summary>Deserializes the message body to an object of the specified type using XML deserialization.</summary>
 	/// <param name="type">The type of object to deserialize the message body into.</param>
-	/// <param name="body">The raw message body as a read-only memory of bytes.</param>
+	/// <param name="body">The raw message body as a <see cref="ReadOnlyMemory{Byte}"/>.</param>
+	/// <returns>The deserialized object.</returns>
+	/// <exception cref="InvalidOperationException">Thrown if deserialization fails or returns null.</exception>
+	protected object DeserializeBody(Type type, ReadOnlyMemory<byte> body)
+	{
+		using var stream = body.AsStream();
+		return DeserializeBody(type, stream);
+	}
+
+	/// <summary>Deserializes the message body to an object of the specified type using XML deserialization.</summary>
+	/// <param name="type">The type of object to deserialize the message body into.</param>
+	/// <param name="body">The raw message body as a <see cref="ReadOnlySequence{Byte}"/>.</param>
 	/// <returns>The deserialized object.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if deserialization fails or returns null.</exception>
 	protected object DeserializeBody(Type type, ReadOnlySequence<byte> body)
 	{
+		using var stream = body.AsStream();
+		return DeserializeBody(type, stream);
+	}
+
+	/// <summary>Deserializes the message body to an object of the specified type using XML deserialization.</summary>
+	/// <param name="type">The type of object to deserialize the message body into.</param>
+	/// <param name="body">The raw message body as a <see cref="Stream"/>.</param>
+	/// <returns>The deserialized object.</returns>
+	/// <exception cref="InvalidOperationException">Thrown if deserialization fails or returns null.</exception>
+	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Public API.")]
+	protected object DeserializeBody(Type type, Stream body)
+	{
 		var xmlSerializer = new XmlSerializer(type);
-		using var xmlReader = XmlReader.Create(body.AsStream());
+		using var xmlReader = XmlReader.Create(body);
 		return xmlSerializer.Deserialize(xmlReader) ?? throw new InvalidOperationException($"Deserialization failed for type {type}.");
 	}
 
