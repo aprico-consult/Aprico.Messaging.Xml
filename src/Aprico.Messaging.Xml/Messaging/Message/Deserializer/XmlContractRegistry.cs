@@ -1,13 +1,13 @@
 #region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Serialization;
 using Aprico.Extensions;
 using Be.Stateless.Linq.Extensions;
 
@@ -30,11 +29,11 @@ namespace Aprico.Messaging.Message.Deserializer;
 /// <summary>Provides a registry mechanism for tracking and managing XML contract types across an application.</summary>
 /// <remarks>
 /// <para>
-/// The registry offers comprehensive type management for XML serialization, enabling robust and flexible contract
+/// The registry offers comprehensive type management for XML serialization, enabling robust and flexible XML contract
 /// registration.
 /// </para>
 /// <para>
-/// It implements a thread-safe approach using a concurrent dictionary, which allows seamless and secure registration of
+/// It implements a thread-safe approach using a concurrent dictionary, which allows seamless and secure registration of XML
 /// contract types.
 /// </para>
 /// <para>
@@ -42,7 +41,7 @@ namespace Aprico.Messaging.Message.Deserializer;
 /// registrations of XML message types.
 /// </para>
 /// <para>
-/// This design ensures type consistency and provides a reliable runtime mechanism for looking up contract types based on
+/// This design ensures type consistency and provides a reliable runtime mechanism for looking up XML contract types based on
 /// their XML fully qualified names.
 /// </para>
 /// </remarks>
@@ -53,99 +52,86 @@ namespace Aprico.Messaging.Message.Deserializer;
 [SuppressMessage("ReSharper", "ClassWithVirtualMembersNeverInherited.Global", Justification = "For mocking purposes.")]
 internal class XmlContractRegistry
 {
-	/// <summary>Determines whether a contract type is registered in the XML contract registry.</summary>
+	/// <summary>Determines whether a contract <see cref="Type"/> is registered in the <see cref="XmlContractRegistry"/>.</summary>
 	/// <typeparam name="T">The type to check for registration.</typeparam>
-	/// <returns><see langword="true"/> if the contract type is registered; otherwise, <see langword="false"/>.</returns>
+	/// <returns><see langword="true"/> if the contract <see cref="Type"/> is registered; otherwise, <see langword="false"/>.</returns>
 	public static bool IsContractRegistered<T>()
 	{
 		return IsContractRegistered(typeof(T));
 	}
 
-	/// <summary>Determines whether a contract type is registered in the XML contract registry using its runtime type.</summary>
-	/// <param name="type">The runtime type to check for registration.</param>
-	/// <returns><see langword="true"/> if the contract type is registered; otherwise, <see langword="false"/>.</returns>
-	/// <remarks>
-	/// This method converts the provided runtime type to its XML fully qualified name and checks for registration in the
-	/// contract registry. It serves as a type-based alternative to string-based contract registration verification.
-	/// </remarks>
+	/// <summary>Determines whether a contract <see cref="Type"/> is registered in the <see cref="XmlContractRegistry"/>.</summary>
+	/// <param name="type">The <see cref="Type"/> to check for registration.</param>
+	/// <returns><see langword="true"/> if the contract <paramref name="type"/> is registered; otherwise, <see langword="false"/>.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if the provided type is null.</exception>
 	public static bool IsContractRegistered(Type type)
 	{
 		return IsContractRegistered(type.GetXmlFullyQualifiedName());
 	}
 
-	/// <summary>Determines whether a contract type is registered in the XML contract registry using its fully qualified XML name.</summary>
-	/// <param name="xmlFullyQualifiedName">The XML fully qualified name of the contract type to check.</param>
+	/// <summary>
+	/// Determines whether a contract <see cref="Type"/> is registered in the <see cref="XmlContractRegistry"/> using its
+	/// fully qualified XML name.
+	/// </summary>
+	/// <param name="xmlFullyQualifiedName">The XML fully qualified name of the contract <see cref="Type"/> to check.</param>
 	/// <returns>
-	/// <see langword="true"/> if a contract with the specified XML fully qualified name is registered; otherwise,
-	/// <see langword="false"/>.
+	/// <see langword="true"/> if a contract with the specified <paramref name="xmlFullyQualifiedName"/> name is registered;
+	/// otherwise, <see langword="false"/>.
 	/// </returns>
-	/// <remarks>
-	/// Checks the internal registry to verify the existence of a contract type based on its XML fully qualified name. This
-	/// method provides a direct lookup mechanism for contract registration verification using the standardized XML type identifier.
-	/// </remarks>
-	/// <exception cref="ArgumentNullException">Thrown if the provided XML fully qualified name is null.</exception>
-	/// <exception cref="ArgumentException">Thrown if the provided XML fully qualified name is empty or whitespace.</exception>
+	/// <exception cref="ArgumentNullException">Thrown if the provided <paramref name="xmlFullyQualifiedName"/> is null.</exception>
+	/// <exception cref="ArgumentException">Thrown if the provided <paramref name="xmlFullyQualifiedName"/> is empty or whitespace.</exception>
 	public static bool IsContractRegistered(string xmlFullyQualifiedName)
 	{
 		return Registry.ContainsKey(xmlFullyQualifiedName);
 	}
 
-	/// <summary>Retrieves the registered contract type for a given XML fully qualified name.</summary>
-	/// <param name="xmlFullyQualifiedName">The XML fully qualified name of the contract type to retrieve.</param>
-	/// <returns>The <see cref="Type"/> associated with the specified XML fully qualified name.</returns>
-	/// <remarks>
-	/// Attempts to fetch the registered contract type from the internal registry using the provided XML fully qualified name.
-	/// If no matching contract type is found, an exception is thrown to indicate the absence of registration.
-	/// </remarks>
+	/// <summary>Retrieves the registered contract <see cref="Type"/> for a given <paramref name="xmlFullyQualifiedName"/>.</summary>
+	/// <param name="xmlFullyQualifiedName">The XML fully qualified name of the contract <see cref="Type"/> to retrieve.</param>
+	/// <returns>The <see cref="Type"/> associated with the specified <paramref name="xmlFullyQualifiedName"/>.</returns>
 	/// <exception cref="InvalidOperationException">
-	/// Thrown when no contract type is registered for the specified XML fully qualified
-	/// name.
+	/// Thrown if no contract <see cref="Type"/> has been registered for the specified
+	/// <paramref name="xmlFullyQualifiedName"/>.
 	/// </exception>
-	/// <exception cref="ArgumentNullException">Thrown if the provided XML fully qualified name is null.</exception>
+	/// <exception cref="ArgumentNullException">Thrown if the provided <paramref name="xmlFullyQualifiedName"/> is null.</exception>
 	public virtual Type GetRegisteredContract(string xmlFullyQualifiedName)
 	{
-		return Registry.TryGetValue(xmlFullyQualifiedName, out var messageType)
-			? messageType
+		return Registry.TryGetValue(xmlFullyQualifiedName, out var type)
+			? type
 			: throw new InvalidOperationException($"No contract type has been registered for XML message type '{xmlFullyQualifiedName}'.");
 	}
 
-	/// <summary>Registers a specific contract type using a generic type parameter.</summary>
-	/// <typeparam name="T">The contract type to be registered.</typeparam>
-	/// <remarks>Enables direct registration of a contract type by specifying its type through a generic parameter.</remarks>
+	/// <summary>Registers a specific XML contract <see cref="Type"/>.</summary>
+	/// <typeparam name="T">The contract <see cref="Type"/> to register.</typeparam>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public void RegisterContract<T>()
 	{
 		RegisterContractType(typeof(T));
 	}
 
-	/// <summary>Registers a specific contract type using a Type instance.</summary>
+	/// <summary>Registers a specific XML contract <see cref="Type"/> using a given instance <paramref name="type"/>.</summary>
 	/// <param name="type">The contract type to be registered.</param>
-	/// <remarks>Provides an overload for registering a contract type by passing its Type directly.</remarks>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public void RegisterContract(Type type)
 	{
 		RegisterContractType(type);
 	}
 
-	/// <summary>Registers a contract assembly by specifying a generic type from the assembly.</summary>
-	/// <typeparam name="T">A type contained within the assembly to be registered.</typeparam>
-	/// <remarks>
-	/// Enables contract assembly registration using a type parameter, automatically extracting the assembly associated with
-	/// the provided type for registration.
-	/// </remarks>
+	/// <summary>
+	/// Registers all the XML contract <see cref="Type"/>s defined in an assembly, by specifying a generic
+	/// <typeparamref name="T"/> <see cref="Type"/> from the assembly.
+	/// </summary>
+	/// <typeparam name="T">Any <see cref="Type"/> of the assembly containing XML contract <see cref="Type"/>s to register.</typeparam>
 	public void RegisterContractAssembly<T>()
 	{
 		RegisterContractAssembly(typeof(T).Assembly);
 	}
 
-	/// <summary>Registers all contract types within the specified assembly that have an <see cref="XmlRootAttribute"/>.</summary>
-	/// <param name="assembly">The assembly containing contract types to register.</param>
-	/// <remarks>
-	/// Scans exported types in the provided assembly, identifying those with an XML root attribute, and automatically
-	/// registers each matching type as a contract type.
-	/// </remarks>
+	/// <summary>Registers all the XML contract <see cref="Type"/>s within the specified <paramref name="assembly"/>.</summary>
+	/// <param name="assembly">The assembly containing XML contract <see cref="Type"/>s to register.</param>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public void RegisterContractAssembly(Assembly assembly)
 	{
-		assembly.ExportedTypes.Where(static type => type.GetCustomAttribute<XmlRootAttribute>(inherit: false) is not null)
+		assembly.ExportedTypes.Where(static type => type.GetXmlRootAttribute() is not null)
 			.ForEach(RegisterContractType);
 	}
 

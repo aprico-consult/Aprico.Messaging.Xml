@@ -28,7 +28,7 @@ using CommunityToolkit.HighPerformance;
 namespace Aprico.Messaging.Message.Deserializer;
 
 /// <summary>Provides an abstract base implementation for XML message deserialization.</summary>
-/// <typeparam name="TXmlDeserializer">The type of XML message deserializer, typically the derived class itself.</typeparam>
+/// <typeparam name="TXmlDeserializer">The type of XML message deserializer, that is the derived class itself.</typeparam>
 /// <remarks>
 /// This abstract class serves as a base for creating specialized XML message deserializer implementations and provides a
 /// fluent registration API for XML message contract management.
@@ -48,9 +48,10 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 
 	internal XmlContractRegistry XmlContractRegistry { get; } = new();
 
-	/// <summary>Registers a specific XML contract type with the deserialization contract registry.</summary>
+	/// <summary>Registers a specific XML contract <see cref="Type"/> for deserialization.</summary>
 	/// <typeparam name="T">The XML contract type to register.</typeparam>
-	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
+	/// <returns>The current <typeparamref name="TXmlDeserializer"/> instance, enabling fluent configuration.</returns>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public TXmlDeserializer AddXmlContract<T>()
 		where T : notnull
 	{
@@ -58,18 +59,20 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return (TXmlDeserializer) this;
 	}
 
-	/// <summary>Registers a specific XML contract type with the deserialization contract registry.</summary>
-	/// <param name="type">The type of the XML contract to register.</param>
-	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
+	/// <summary>Registers a specific XML contract <see cref="Type"/> for deserialization.</summary>
+	/// <param name="type">The <see cref="Type"/> of the XML contract to register.</param>
+	/// <returns>The current <typeparamref name="TXmlDeserializer"/> instance, enabling fluent configuration.</returns>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public TXmlDeserializer AddXmlContract(Type type)
 	{
 		XmlContractRegistry.RegisterContract(type);
 		return (TXmlDeserializer) this;
 	}
 
-	/// <summary>Registers all contract types within the specified assembly that have an <see cref="XmlRootAttribute"/>.</summary>
-	/// <typeparam name="T">The assembly containing XML contract types to register.</typeparam>
-	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
+	/// <summary>Registers all XML contract <see cref="Type"/>s from the assembly for deserialization.</summary>
+	/// <typeparam name="T">Any <see cref="Type"/> from the assembly containing XML contract <see cref="Type"/>s to register.</typeparam>
+	/// <returns>The current <typeparamref name="TXmlDeserializer"/> instance, enabling fluent configuration.</returns>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public TXmlDeserializer AddXmlContractAssembly<T>()
 		where T : notnull
 	{
@@ -77,10 +80,11 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return (TXmlDeserializer) this;
 	}
 
-	/// <summary>Registers all contract types within the specified assembly that have an <see cref="XmlRootAttribute"/>.</summary>
-	/// <param name="assembly">The assembly to register for XML contract deserialization.</param>
-	/// <returns>The current XML message deserializer instance, enabling fluent configuration.</returns>
+	/// <summary>Registers all XML contract <see cref="Type"/>s from the assembly for deserialization.</summary>
+	/// <param name="assembly">The assembly containing XML contract <see cref="Type"/>s to register.</param>
+	/// <returns>The current <typeparamref name="TXmlDeserializer"/> instance, enabling fluent configuration.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if the provided assembly is null.</exception>
+	/// <remarks>An XML contract <see cref="Type"/> must be decorated with an <see cref="XmlRootAttribute"/>.</remarks>
 	public TXmlDeserializer AddXmlContractAssembly(Assembly assembly)
 	{
 		ArgumentNullException.ThrowIfNull(assembly);
@@ -88,8 +92,11 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return (TXmlDeserializer) this;
 	}
 
-	/// <summary>Deserializes the message body to an object of the specified type using XML deserialization.</summary>
-	/// <param name="type">The type of object to deserialize the message body into.</param>
+	/// <summary>
+	/// Deserializes the message <paramref name="body"/> to an object of the specified <paramref name="type"/> using XML
+	/// deserialization.
+	/// </summary>
+	/// <param name="type">The <see cref="Type"/> of object to deserialize the message <paramref name="body"/> into.</param>
 	/// <param name="body">The raw message body as a <see cref="ReadOnlyMemory{Byte}"/>.</param>
 	/// <returns>The deserialized object.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if deserialization fails or returns null.</exception>
@@ -99,8 +106,11 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return DeserializeBody(type, stream);
 	}
 
-	/// <summary>Deserializes the message body to an object of the specified type using XML deserialization.</summary>
-	/// <param name="type">The type of object to deserialize the message body into.</param>
+	/// <summary>
+	/// Deserializes the message <paramref name="body"/> to an object of the specified <paramref name="type"/> using XML
+	/// deserialization.
+	/// </summary>
+	/// <param name="type">The <see cref="Type"/> of object to deserialize the message <paramref name="body"/> into.</param>
 	/// <param name="body">The raw message body as a <see cref="ReadOnlySequence{Byte}"/>.</param>
 	/// <returns>The deserialized object.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if deserialization fails or returns null.</exception>
@@ -110,8 +120,11 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return DeserializeBody(type, stream);
 	}
 
-	/// <summary>Deserializes the message body to an object of the specified type using XML deserialization.</summary>
-	/// <param name="type">The type of object to deserialize the message body into.</param>
+	/// <summary>
+	/// Deserializes the message <paramref name="body"/> to an object of the specified <paramref name="type"/> using XML
+	/// deserialization.
+	/// </summary>
+	/// <param name="type">The <see cref="Type"/> of object to deserialize the message <paramref name="body"/> into.</param>
 	/// <param name="body">The raw message body as a <see cref="Stream"/>.</param>
 	/// <returns>The deserialized object.</returns>
 	/// <exception cref="InvalidOperationException">Thrown if deserialization fails or returns null.</exception>
@@ -123,16 +136,19 @@ public abstract class AbstractXmlMessageDeserializer<TXmlDeserializer>
 		return xmlSerializer.Deserialize(xmlReader) ?? throw new InvalidOperationException($"Deserialization failed for type {type}.");
 	}
 
-	/// <summary>Retrieves the registered XML contract type based on its fully qualified name.</summary>
-	/// <param name="fullyQualifiedName">The fully qualified name of the XML contract type to retrieve.</param>
-	/// <returns>The registered XML contract type corresponding to the specified fully qualified name.</returns>
-	/// <remarks>
-	/// This method is part of a fluent API and may return null if no contract is registered for the given name. The method is
-	/// designed to be used within derived classes and assemblies.
-	/// </remarks>
+	/// <summary>Retrieves the XML contract <see cref="Type"/> registered for deserialization based on its XML fully qualified name.</summary>
+	/// <param name="xmlFullyQualifiedName">The XML fully qualified name of the contract <see cref="Type"/> to retrieve.</param>
+	/// <returns>
+	/// The registered XML contract <see cref="Type"/> corresponding to the specified <paramref name="xmlFullyQualifiedName"/>
+	/// .
+	/// </returns>
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if no contract type has been registered for the given
+	/// <paramref name="xmlFullyQualifiedName"/>.
+	/// </exception>
 	[SuppressMessage("ReSharper", "UnusedMethodReturnValue.Global", Justification = "Fluent API.")]
-	protected internal Type GetXmlContract(string fullyQualifiedName)
+	protected internal Type GetXmlContract(string xmlFullyQualifiedName)
 	{
-		return XmlContractRegistry.GetRegisteredContract(fullyQualifiedName);
+		return XmlContractRegistry.GetRegisteredContract(xmlFullyQualifiedName);
 	}
 }

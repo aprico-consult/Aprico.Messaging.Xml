@@ -37,16 +37,16 @@ namespace Aprico.Xml.Extensions;
 [SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
 public static class ObjectXmlSerializationExtensions
 {
-	/// <summary>Serializes an object of type <typeparamref name="T"/> to XML as a read-only byte sequence.</summary>
-	/// <typeparam name="T">The type of the object to serialize. Must be a non-null type.</typeparam>
-	/// <param name="body">The object to be serialized to XML. Cannot be null.</param>
+	/// <summary>Serializes a message <paramref name="body"/> instance of type <typeparamref name="T"/> to XML as a byte sequence.</summary>
+	/// <typeparam name="T">The type of the <paramref name="body"/> to serialize. Must be a non-null <see cref="Type"/>.</typeparam>
+	/// <param name="body">The object to be serialized to XML.</param>
 	/// <returns>A <see cref="ReadOnlySequence{Byte}"/> containing the XML serialized representation of the object.</returns>
 	/// <remarks>
 	/// This method uses a recyclable memory stream to serialize the object efficiently. It avoids creating unnecessary
-	/// allocations by returning a <see cref="ReadOnlySequence{Byte}"/>. The serialization is performed using the
-	/// <see cref="XmlWriter"/> with uniform configuration settings to ensure consistent XML serialization.
+	/// allocations by returning a <see cref="ReadOnlyMemory{Byte}"/>. The serialization is performed using the <see cref="XmlWriter"/>
+	/// with uniform configuration settings to ensure consistent XML serialization.
 	/// </remarks>
-	/// <exception cref="ArgumentNullException">Thrown if the input object is null.</exception>
+	/// <exception cref="ArgumentNullException">Thrown if the input <paramref name="body"/> is null.</exception>
 	/// <exception cref="InvalidOperationException">Thrown if XML serialization fails.</exception>
 	[SuppressMessage("ReSharper", "AccessToDisposedClosure")]
 	public static ReadOnlyMemory<byte> SerializeAsXmlBinary<T>([DisallowNull] this T body)
@@ -58,12 +58,16 @@ public static class ObjectXmlSerializationExtensions
 		return stream.GetBuffer().AsMemory(start: 0, (int) stream.Length);
 	}
 
-	/// <summary>Serializes an object of type <typeparamref name="T"/> to an XML string representation.</summary>
-	/// <typeparam name="T">The type of the object to serialize. Must be non-null.</typeparam>
+	/// <summary>Serializes a message <paramref name="body"/> instance of type <typeparamref name="T"/> to an XML string.</summary>
+	/// <typeparam name="T">The type of the <paramref name="body"/> to serialize. Must be a non-null <see cref="Type"/>.</typeparam>
 	/// <param name="body">The object to be serialized to XML.</param>
-	/// <returns>A string containing the XML representation of the object.</returns>
-	/// <remarks>This extension method converts the object to an XML string using a <see cref="StringWriter"/>.</remarks>
-	/// <exception cref="ArgumentNullException">Thrown if the input object is null.</exception>
+	/// <returns>A <see cref="String"/> containing the XML representation of the object.</returns>
+	/// <remarks>
+	/// This extension method converts the object to an XML string using a <see cref="StringWriter"/>. The serialization is
+	/// performed using the <see cref="XmlWriter"/> with uniform configuration settings to ensure consistent XML serialization.
+	/// </remarks>
+	/// <exception cref="ArgumentNullException">Thrown if the input <paramref name="body"/> is null.</exception>
+	/// <exception cref="InvalidOperationException">Thrown if XML serialization fails.</exception>
 	[SuppressMessage("ReSharper", "AccessToDisposedClosure")]
 	public static string SerializeAsXmlString<T>([DisallowNull] this T body)
 		where T : notnull

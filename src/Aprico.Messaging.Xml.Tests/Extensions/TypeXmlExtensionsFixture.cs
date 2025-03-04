@@ -1,13 +1,13 @@
 #region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -110,14 +110,14 @@ public abstract class TypeXmlExtensionsFixture
 
 	#endregion
 
-	#region Nested Type: HasXmlPartiallyQualifiedName
+	#region Nested Type: IsXmlNamePartiallyQualified
 
-	public class HasXmlPartiallyQualifiedName : TypeXmlExtensionsFixture
+	public class IsXmlNamePartiallyQualified : TypeXmlExtensionsFixture
 	{
 		[Fact]
 		public void ReturnsFalseForFullyQualified()
 		{
-			typeof(FullyQualifiedDummyOne).HasXmlPartiallyQualifiedName()
+			typeof(FullyQualifiedDummyOne).IsXmlNamePartiallyQualified()
 				.Should()
 				.BeFalse();
 		}
@@ -125,7 +125,7 @@ public abstract class TypeXmlExtensionsFixture
 		[Fact]
 		public void ReturnsFalseForRootNameQualified()
 		{
-			typeof(RootNameQualifiedDummy).HasXmlPartiallyQualifiedName()
+			typeof(RootNameQualifiedDummy).IsXmlNamePartiallyQualified()
 				.Should()
 				.BeFalse();
 		}
@@ -133,7 +133,7 @@ public abstract class TypeXmlExtensionsFixture
 		[Fact]
 		public void ReturnsFalseForUnqualified()
 		{
-			typeof(UnqualifiedDummy).HasXmlPartiallyQualifiedName()
+			typeof(UnqualifiedDummy).IsXmlNamePartiallyQualified()
 				.Should()
 				.BeFalse();
 		}
@@ -141,7 +141,7 @@ public abstract class TypeXmlExtensionsFixture
 		[Fact]
 		public void ReturnsTrueForPartiallyQualified()
 		{
-			typeof(PartiallyQualifiedDummy).HasXmlPartiallyQualifiedName()
+			typeof(PartiallyQualifiedDummy).IsXmlNamePartiallyQualified()
 				.Should()
 				.BeTrue();
 		}
