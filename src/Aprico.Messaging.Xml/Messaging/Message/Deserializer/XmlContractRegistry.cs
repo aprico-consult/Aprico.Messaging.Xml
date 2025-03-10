@@ -140,6 +140,7 @@ internal class XmlContractRegistry
 		var xmlFullyQualifiedName = type.GetXmlFullyQualifiedName();
 		if (Registry.TryAdd(xmlFullyQualifiedName, type)) return;
 		var previouslyRegisteredType = Registry[xmlFullyQualifiedName];
+		if (previouslyRegisteredType == type) return;
 		throw new InvalidOperationException(
 			$"The XML message type '{xmlFullyQualifiedName}' has already been registered by the contract type '{previouslyRegisteredType.FullName}' and cannot be registered again by the contract type '{type.FullName}'.");
 	}
