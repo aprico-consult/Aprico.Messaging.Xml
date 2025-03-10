@@ -1,13 +1,13 @@
 #region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,22 @@
 
 #endregion
 
-using System.Xml.Serialization;
+using Aprico.Dummies;
+using Aprico.Xml.Extensions;
+using AutoFixture.Xunit2;
 
-namespace Aprico.Dummies;
+namespace Aprico.Messaging.Message.Deserializer;
 
-[XmlRoot("DummyXml", Namespace = "https://schemas.aprico.be")]
-public sealed class FullyQualifiedDummyOne;
+public class XmlBodyDeserializerFixture
+{
+	[Theory]
+	[AutoData]
+	public void SucceedsForRegisteredContract(FullyQualifiedDummy dummy)
+	{
+		dummy.SerializeAsXmlBinary()
+			.Deserialize(typeof(FullyQualifiedDummy))
+			.Should()
+			.BeOfType<FullyQualifiedDummy>()
+			.And.BeEquivalentTo(dummy);
+	}
+}

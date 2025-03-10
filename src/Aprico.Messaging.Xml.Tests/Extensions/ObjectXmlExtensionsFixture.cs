@@ -38,7 +38,7 @@ public abstract class ObjectXmlExtensionsFixture
 		[Fact]
 		public void SucceedsForQualified()
 		{
-			new FullyQualifiedDummyOne().GetXmlFullyQualifiedName()
+			new FullyQualifiedDummy().GetXmlFullyQualifiedName()
 				.Should()
 				.Be("https://schemas.aprico.be#DummyXml");
 		}

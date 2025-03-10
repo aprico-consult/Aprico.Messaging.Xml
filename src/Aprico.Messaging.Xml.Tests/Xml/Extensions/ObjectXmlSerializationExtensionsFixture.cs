@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Buffers;
+using System.Text;
 using Aprico.Dummies;
 
 namespace Aprico.Xml.Extensions;
@@ -48,10 +48,10 @@ public abstract class ObjectXmlSerializationExtensionsFixture
 		[Fact]
 		public void SucceedsForFullyQualified()
 		{
-			var xmlBinary = new FullyQualifiedDummyOne().SerializeAsXmlBinary();
+			var xmlBinary = new FullyQualifiedDummy().SerializeAsXmlBinary();
 			xmlBinary.ToArray()
 				.Should()
-				.BeEquivalentTo("<q:DummyXml xmlns:q=\"https://schemas.aprico.be\" />"u8.ToArray());
+				.BeEquivalentTo(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes($"<q:DummyXml xmlns:q=\"https://schemas.aprico.be\"><q:Id>{Guid.Empty}</q:Id></q:DummyXml>"));
 		}
 
 		[Fact]
@@ -91,9 +91,9 @@ public abstract class ObjectXmlSerializationExtensionsFixture
 		[Fact]
 		public void SucceedsForFullyQualified()
 		{
-			var xmlString = new FullyQualifiedDummyOne().SerializeAsXmlString();
+			var xmlString = new FullyQualifiedDummy().SerializeAsXmlString();
 			xmlString.Should()
-				.Be("<q:DummyXml xmlns:q=\"https://schemas.aprico.be\" />");
+				.Be($"<q:DummyXml xmlns:q=\"https://schemas.aprico.be\"><q:Id>{Guid.Empty}</q:Id></q:DummyXml>");
 		}
 
 		[Fact]

@@ -33,7 +33,6 @@
       <PackageReference Include="Be.Stateless.Extensions"/>
       <PackageReference Include="CommunityToolkit.HighPerformance"/>
       <PackageReference Include="Microsoft.IO.RecyclableMemoryStream"/>
-      <PackageReference Include="System.Memory.Data"/>
    </ItemGroup>
 
 </Project>
