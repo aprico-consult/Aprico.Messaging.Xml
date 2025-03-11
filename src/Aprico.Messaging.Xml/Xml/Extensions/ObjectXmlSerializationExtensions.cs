@@ -20,7 +20,6 @@ using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using Aprico.Extensions;
@@ -105,7 +104,7 @@ public static class ObjectXmlSerializationExtensions
 		});
 
 	private static readonly XmlWriterSettings _xmlWriterSettings = new() {
-		Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), // no BOM
+		Encoding = XmlSerializationSettings.Encoding,
 		Indent = false,
 		OmitXmlDeclaration = true,
 		NamespaceHandling = NamespaceHandling.OmitDuplicates
